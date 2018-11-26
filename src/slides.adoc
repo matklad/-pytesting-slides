@@ -1,0 +1,52 @@
+= Python2018
+Алексей Кладов <aleksey.kladov@gmail.com>
+:lecture: Лекция 11: Тестирование
+
+
+== Терминологическая Путаница
+
+unit-testing:: тестирование изолированных компонент / автоматизированное тестирование
+
+integration-testing:: тестирование взаимодействия компонент / не unit тестирование
+
+[.center]
+image::https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Edvard_Munch%2C_1893%2C_The_Scream%2C_oil%2C_tempera_and_pastel_on_cardboard%2C_91_x_73_cm%2C_National_Gallery_of_Norway.jpg/220px-Edvard_Munch%2C_1893%2C_The_Scream%2C_oil%2C_tempera_and_pastel_on_cardboard%2C_91_x_73_cm%2C_National_Gallery_of_Norway.jpg[scream]
+
+== Свойства Тестов
+
+* Простота написания (*!*)
+* Скорость работы (unit vs. integration)
+* Стабильность при изменении кода (code churn)
+* Стабильность при изменении внешних компонент
+* Надёжность (тесты проходят, но работает ли программа?)
+
+
+== Личный Опыт
+
+* Тестирование это сложно и не понятно
+* Лучшая метрика -- покрытие user-visble фич
+* Лучшие тесты -- быстрые интеграционные тесты без внешних зависимостей
+* Нужны медленные flacky тесты для зависимостей
+* Data-driven тесты эффективны
+* Не умею тестировать асинхронный код (в том числе UI)
+
+
+
+== unittest
+
+[source,python]
+----
+import unittest
+
+class TestStringMethods(unittest.TestCase):
+
+    def test_upper(self):
+        self.assertEqual('foo'.upper(), 'FOO')
+
+if __name__ == '__main__':
+    unittest.main()
+----
+
+* API из Java
+* Отличный пример неудачного использования OOP
+

@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "dependencies": {
+    "asciidoctor-pdf.js": "file:../asciidoctor-pdf.js"
+  },
+  "scripts": {
+    "build": "./node_modules/asciidoctor-pdf.js/bin/asciidoctorjs-pdf ./src/slides.adoc --template-require ./src/template.js -D out",
+    "watch": "./node_modules/asciidoctor-pdf.js/bin/asciidoctorjs-pdf ./src/slides.adoc --template-require ./src/template.js -D out --watch"
+  }
+}
