@@ -17,6 +17,10 @@ img {
     display: block;
     margin: 0 auto;
 }
+.admonitionblock.question td.icon .icon-note:before {
+  content: "\f128";
+  color: #19407c;
+}
 .slide {
   position: relative;
   width: 1024px;
@@ -52,6 +56,10 @@ h1, h2 {
 .two-col > .slide-content > *:last-child {
   margin-left: 10px;
   flex: 50%;
+}
+.sidebarblock {
+  border-width: 3px;
+  background-color: white;
 }
 p {
   margin-block-end: 0;

@@ -7,6 +7,8 @@ module.exports = {
   <link href="./slides.css" rel="stylesheet">
   <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/styles/github.min.css">
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/highlight.min.js"></script>
   <script>
   hljs.initHighlightingOnLoad();
@@ -31,12 +33,11 @@ module.exports = {
       ${node.getContent()}
     </div>
     <footer>
-    <p>${node.index + 1} / ${node.parent.blocks.length}</p>
+    <p class="small">${node.index + 1} / ${node.parent.blocks.length}</p>
     </footer>
   </section>`,
 
-    paragraph: (node) => `<p class="${node.getRoles()}">${node.getContent()}</p>`,
-
+    paragraph: (node) => `<p class="${node.getRoles().join(" ")}">${node.getContent()}</p>`,
 
     image: (node) => `<img class="image ${node.getRoles()}" src="${node.getImageUri(node.getAttribute('target'))}"/>`
 }

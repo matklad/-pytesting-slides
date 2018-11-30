@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+  <html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <link href="./asciidoctor.css" rel="stylesheet">
+  <link href="./slides.css" rel="stylesheet">
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/styles/github.min.css">
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/highlight.min.js"></script>
+  <script>
+  hljs.initHighlightingOnLoad();
+  </script>
+  </head>
+  <body>
+  <section class="slide" id="title-slide">
+  <h1>Python2018</h1>
+  <h2><a href="https://compscicenter.ru">compscicenter.ru</a></h2>
+  <h2>aleksey.kladov@gmail.com</h2>
+  </section>
+  <section class="slide" id="title-slide">
+      <h1>Лекция 11: Тестирование</h1>
+  </section>
+  
+  <section class="slide  ">
+    <h2>Терминологическая Путаница</h2>
+    <div class='slide-content'>
+      <div class="dlist">
+<dl>
+<dt class="hdlist1">unit-testing</dt>
+<dd>
+<p>тестирование изолированных компонент / автоматизированное тестирование</p>
+</dd>
+<dt class="hdlist1">integration-testing</dt>
+<dd>
+<p>тестирование взаимодействия компонент / не unit тестирование</p>
+</dd>
+</dl>
+</div>
+<img class="image center" src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Edvard_Munch%2C_1893%2C_The_Scream%2C_oil%2C_tempera_and_pastel_on_cardboard%2C_91_x_73_cm%2C_National_Gallery_of_Norway.jpg/220px-Edvard_Munch%2C_1893%2C_The_Scream%2C_oil%2C_tempera_and_pastel_on_cardboard%2C_91_x_73_cm%2C_National_Gallery_of_Norway.jpg"/>
+    </div>
+    <footer>
+    <p class="small">1 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Свойства Тестов</h2>
+    <div class='slide-content'>
+      <div class="ulist">
+<ul>
+<li>
+<p>Простота написания (<strong>!</strong>)</p>
+</li>
+<li>
+<p>Скорость работы (unit vs. integration)</p>
+</li>
+<li>
+<p>Стабильность при изменении кода (code churn)</p>
+</li>
+<li>
+<p>Стабильность при изменении внешних компонент</p>
+</li>
+<li>
+<p>Надёжность (тесты проходят, но работает ли программа?)</p>
+</li>
+</ul>
+</div>
+    </div>
+    <footer>
+    <p class="small">2 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Личный Опыт</h2>
+    <div class='slide-content'>
+      <div class="ulist">
+<ul>
+<li>
+<p>Тестирование это сложно и не понятно</p>
+</li>
+<li>
+<p>Лучшая метрика&#8201;&#8212;&#8201;покрытие user-visble фич</p>
+</li>
+<li>
+<p>Лучшие тесты&#8201;&#8212;&#8201;быстрые интеграционные тесты без внешних зависимостей</p>
+</li>
+<li>
+<p>Нужны медленные flacky тесты для зависимостей</p>
+</li>
+<li>
+<p>Data-driven тесты эффективны</p>
+</li>
+<li>
+<p>Не умею тестировать асинхронный код (в том числе UI)</p>
+</li>
+</ul>
+</div>
+    </div>
+    <footer>
+    <p class="small">3 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>System Under Test</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">import itertools
+
+def rle(iterable):
+    """Apply run-length encoding to an iterable."""
+    for item, g in itertools.groupby(iterable):
+        yield item, sum(1 for _ in g)</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">4 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Тестирование <code>print</code></h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">def rle(iterable):
+    ...
+
+print(list(rle("mississippi")))</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">5 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Тестирование <code>print</code></h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">def rle(iterable):
+    ...
+
+print(list(rle("mississippi")))</code></pre>
+</div>
+</div>
+<p class="text-center big">:-(</p>
+    </div>
+    <footer>
+    <p class="small">6 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Тестирование <code>assert</code></h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">def rle(iterable):
+    ...
+
+assert list(rle("")) == []
+assert list(rle("foo")) == [('f', 1), ('o', 2)]</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Не используйте в production :)</p>
+</li>
+<li>
+<p>Сильно лучше <code>print</code> для &#8220;write-once&#8221; скриптов</p>
+</li>
+<li>
+<p>Лучше, чем ничего/<code>print</code>, для домашек по алгоритмам</p>
+</li>
+<li>
+<p>Исполняется <strong>каждый</strong> раз</p>
+</li>
+</ul>
+</div>
+    </div>
+    <footer>
+    <p class="small">7 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Сообщение <code>assert</code></h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">def rle(iterable):
+    return []
+
+assert list(rle("foo")) == [('f', 1), ('o', 2)]</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>Traceback (most recent call last):
+  File "rle.py", line 4, in &lt;module&gt;
+    assert list(rle("foo")) == [('f', 1), ('o', 2)]
+AssertionError</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">8 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Сообщение <code>assert</code></h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">def rle(iterable):
+    return []
+
+assert list(rle("foo")) == [('f', 1), ('o', 2)],  list(rle("foo"))</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>Traceback (most recent call last):
+  File "rle.py", line 4, in &lt;module&gt;
+    assert list(rle("foo")) == [('f', 1), ('o', 2)]
+AssertionError: []</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">9 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Сообщение <code>assert</code></h2>
+    <div class='slide-content'>
+      <div class="ulist">
+<ul>
+<li>
+<p>Вычисляется лениво: <code>assert cond, long_computation()</code></p>
+</li>
+<li>
+<p>Лениво пишется (работает любой объект)</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">assert foo(x, y) == bar, (x, y, bar)</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">10 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>doctest</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">import itertools
+
+def rle(iterable):
+    """Apply run-length encoding to an iterable.
+
+    &gt;&gt;&gt; list(rle(""))
+    []
+    &gt;&gt;&gt; list(rle("foo"))
+    [('f', 1), ('o', 2)]
+    """
+    for item, g in itertools.groupby(iterable):
+        yield item, sum(1 for _ in g)</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">11 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Запуск doctest изнутри</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">def rle(iterable):
+    """Apply run-length encoding to an iterable.
+    &gt;&gt;&gt; list(rle("foo"))
+    [('f', 1), ('o', 2)]
+    """
+    return []</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">12 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Запуск doctest изнутри</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>$ python rle.py
+
+****************************************************
+File "rle.py", line 4, in __main__.rle
+Failed example:
+    list(rle("foo"))
+Expected:
+    [('f', 1), ('o', 2)]
+Got:
+    []
+****************************************************
+1 items had failures:
+   1 of   1 in __main__.rle
+***Test Failed*** 1 failures.</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">13 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Запуск doctest снаружи</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>$ python -m doctest rle.py</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">14 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Директивы doctest</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">import itertools
+
+def rle(iterable):
+    """Apply run-length encoding to an iterable.
+    &gt;&gt;&gt; list(rle("mississippi"))
+    [('m', 1), ('i', 1), ('s', 2), ('i', 1),
+     ('s', 2), ('i', 1), ('p', 2), ('i', 1)]
+    """
+    for item, g in itertools.groupby(iterable):
+        yield item, sum(1 for _ in g)</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>***Test Failed*** 1 failures.</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">15 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Директивы doctest</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">import itertools
+
+def rle(iterable):
+    """Apply run-length encoding to an iterable.
+    &gt;&gt;&gt; list(rle("mississippi")) # doctest: +NORMALIZE_WHITESPACE
+    [('m', 1), ('i', 1), ('s', 2), ('i', 1),
+     ('s', 2), ('i', 1), ('p', 2), ('i', 1)]
+    """
+    for item, g in itertools.groupby(iterable):
+        yield item, sum(1 for _ in g)</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">16 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Директивы doctest</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">import itertools
+
+def rle(iterable):
+    """Apply run-length encoding to an iterable.
+    &gt;&gt;&gt; list(rle("mississippi")) # doctest: +ELLIPSIS
+    [('m', 1), ... ('i', 1)]
+    """
+    for item, g in itertools.groupby(iterable):
+        yield item, sum(1 for _ in g)</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">17 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Когда использовать doctest?</h2>
+    <div class='slide-content'>
+      <div class="ulist">
+<ul>
+<li>
+<p>Документация устаревает.</p>
+</li>
+<li>
+<p><code>doctest</code>&#8201;&#8212;&#8201;отличное решение для тестирования <strong>документации</strong>.</p>
+</li>
+<li>
+<p>Тестировать функциональность при помощи <code>doctest</code>&#8201;&#8212;&#8201;не лучшая идея.</p>
+</li>
+</ul>
+</div>
+    </div>
+    <footer>
+    <p class="small">18 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>unittest</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">class TestHomework(unittest.TestCase):
+    def test_rle_empty(self):
+        self.assertEqual(list(rle("")), [])
+
+    def test_rle(self):
+        expected = [
+            ('f', 2), ('o', 2)
+        ]
+        self.assertEqual(list(rle("foo")), expected)</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">19 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>unittest</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">if __name__ == '__main__':
+    unittest.main()</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>$ python -m unittest rle</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">20 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  no-title">
+    <h2>!</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>F.
+=======================================================
+FAIL: test_rle (rle.TestHomework)
+-------------------------------------------------------
+Traceback (most recent call last):
+  File "rle.py", line 27, in test_rle
+    self.assertEqual(list(rle("foo")), expected)
+AssertionError: Lists differ: [] != [('f', 1), ('o', 2)]
+
+Second list contains 2 additional elements.
+First extra element 0:
+('f', 1)
+
+- []
++ [('f', 1), ('o', 2)]
+-------------------------------------------------------
+Ran 2 tests in 0.001s
+FAILED (failures=1)</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">21 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>unittest</h2>
+    <div class='slide-content'>
+      <div class="ulist">
+<ul>
+<li>
+<p>Доступен из коробки</p>
+</li>
+<li>
+<p>API из Java</p>
+</li>
+<li>
+<p>Отличный пример неудачного использования OOP</p>
+</li>
+</ul>
+</div>
+    </div>
+    <footer>
+    <p class="small">22 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Quiz: assertions</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">class TestHomework(unittest.TestCase):
+    def test_rle_empty_1(self):
+        self.assertEqual(list(rle("")), [])
+
+    def test_rle_empty_2(self):
+        assert list(rle("") == []</code></pre>
+</div>
+</div>
+<div class="admonitionblock note question">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<p class="">В чём разница между двумя <code>assert</code>?</p>
+</td>
+</tr>
+</table>
+</div>
+    </div>
+    <footer>
+    <p class="small">23 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Fluent assertions:</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">assertThat(list(rle(""))).isEqualTo([])</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Генерируют подробное сообщение об ошибке.</p>
+</li>
+<li>
+<p>Многословные.</p>
+</li>
+<li>
+<p>Хуже, чем hand-made сообщение об ошибке.</p>
+</li>
+<li>
+<p>There is a better way in Python!</p>
+</li>
+</ul>
+</div>
+    </div>
+    <footer>
+    <p class="small">24 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>setUp / tearDown</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">import unittest
+import tempfile
+
+class TestWithTempFile(unittest.TestCase):
+    def setUp(self):
+        self.tempfile = tempfile.TemporaryFile()
+
+    def tearDown(self):
+        self.tempfile.close()
+
+    def test_rle(self):
+        self.tempfile.write('mississippi')
+        self.assertEqual(rle_encode(self.tempfile),  [
+            ...
+        ])</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">25 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Проблемы setUp / tearDown</h2>
+    <div class='slide-content'>
+      <div class="sidebarblock">
+<div class="content">
+<div class="title">Неявные инварианты</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Почему в <code>test_rle</code> <code>self.tempfile</code> не <code>none</code>?</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sidebarblock">
+<div class="content">
+<div class="title">Отсутствие композиции</div>
+<div class="ulist">
+<ul>
+<li>
+<p>тест <strong>foo</strong> требует базу данных</p>
+</li>
+<li>
+<p>тест <strong>bar</strong> требует временный файл</p>
+</li>
+<li>
+<p>тесту <strong>baz</strong> нужны и БД, и файл</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">26 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>pytest</h2>
+    <div class='slide-content'>
+      <div class="ulist">
+<ul>
+<li>
+<p>helps you write better programs</p>
+</li>
+<li>
+<p>Лучшая библиотека для тестирования</p>
+</li>
+<li>
+<p><a href="https://docs.pytest.org/en/latest/" class="bare">https://docs.pytest.org/en/latest/</a></p>
+</li>
+</ul>
+</div>
+    </div>
+    <footer>
+    <p class="small">27 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>API</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">def rle(iterable):
+    return []
+
+def test_rle_foo():
+    assert rle("foo") == [('f', 1), ('o', 1)]</code></pre>
+</div>
+</div>
+<div class="sidebarblock">
+<div class="content">
+<div class="title">Преимущества</div>
+<div class="ulist">
+<ul>
+<li>
+<p>API почти отсутствует.</p>
+</li>
+<li>
+<p>Добавить новый тест&#8201;&#8212;&#8201;просто.</p>
+</li>
+<li>
+<p>Вероятность, что тесты есть, повышается.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">28 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Lifehack</h2>
+    <div class='slide-content'>
+      <div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Пишите тривиальные тесты для новой функциональности.
+</td>
+</tr>
+</table>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Написать первый тест сложно&#8201;&#8212;&#8201;нужно настроить инфраструктуру.</p>
+</li>
+<li>
+<p>Когда есть тривиальный тест, написать первый настоящий тест&#8201;&#8212;&#8201;не лень.</p>
+</li>
+<li>
+<p>Копировать тесты&#8201;&#8212;&#8201;это ОК.</p>
+</li>
+</ul>
+</div>
+    </div>
+    <footer>
+    <p class="small">29 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Запуск</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>$ python -m pytest rle.py</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">30 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  no-title">
+    <h2>!</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>================= test session starts =================
+platform linux -- Python 3.6.6, pytest-3.8.2, py-1.7.0, pluggy-0.7.1
+rootdir: /home/matklad/python-course/python-2018/11/code_bits
+collected 1 item
+
+rle.py F
+
+====================== FAILURES =======================
+____________________ test_rle_foo _____________________
+
+    def test_rle_foo():
+&gt;       assert rle("foo") == [('f', 1), ('o', 1)]
+E       AssertionError: assert [] == [('f', 1), ('o', 1)]
+E         Right contains more items, first extra item: ('f', 1)
+E         Use -v to get the full diff
+
+rle.py:18: AssertionError
+================= 1 failed in 0.03 seconds =================</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">31 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Подробные сообщения об ошибках</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>    def test_rle_foo():
+&gt;       assert rle("foo") == [('f', 1), ('o', 1)]
+E       AssertionError: assert [] == [('f', 1), ('o', 1)]
+E         Right contains more items, first extra item: ('f', 1)
+E         Full diff:
+E         - []
+E         + [('f', 1), ('o', 1)]</code></pre>
+</div>
+</div>
+<p class="">Принцип работы: переписывание AST.</p>
+<p class="small"><a href="http://pybites.blogspot.com/2011/07/behind-scenes-of-pytests-new-assertion.html" class="bare">http://pybites.blogspot.com/2011/07/behind-scenes-of-pytests-new-assertion.html</a></p>
+    </div>
+    <footer>
+    <p class="small">32 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Fixtures</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python"># setUp/tearDown =&gt; менеджер контекста
+
+@pytest.fixture()
+def tempfile():
+    with TemporaryFile() as f:
+        yield f
+
+def test_with_tempdir(tempfile):
+    tempfile.write(b'hello')
+    tempfile.seek(0)
+    assert tempfile.read() == b'hello'</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">33 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Композиция</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">@pytest.fixture()
+def db():
+    ...
+
+@pytest.fixture()
+def tempfile():
+    ...
+
+def test_dump_db_to_file(db, tempfile):
+    pass</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">34 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Зависимости</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">@pytest.fixture()
+def tempfile():
+    with TemporaryFile() as f:
+        yield f
+
+@pytest.fixture()
+def hello_file(tempfile):
+    tempfile.write(b'hello')
+    tempfile.seek(0)
+    return tempfile
+
+def test_hello(hello_file):
+    assert hello_file.read() == b'hello'</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">35 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Больше pytest</h2>
+    <div class='slide-content'>
+      <div class="ulist">
+<ul>
+<li>
+<p>test discovery</p>
+</li>
+<li>
+<p>module fixtures</p>
+</li>
+<li>
+<p>параметризованные тесты</p>
+</li>
+<li>
+<p>тестирование исключений и предупреждений</p>
+</li>
+<li>
+<p>встроенные fixtures</p>
+</li>
+<li>
+<p>замечательная документация ;)</p>
+</li>
+</ul>
+</div>
+    </div>
+    <footer>
+    <p class="small">36 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Зависимости между компонентами</h2>
+    <div class='slide-content'>
+      <div class="admonitionblock note question">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<p class="">Как тестировать отсылку Emailов?</p>
+</td>
+</tr>
+</table>
+</div>
+    </div>
+    <footer>
+    <p class="small">37 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>unittest.mock</h2>
+    <div class='slide-content'>
+      <div class="ulist">
+<ul>
+<li>
+<p><code>unittest.mock</code> позволяет заменить любой объект на магический всемогутор.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">&gt;&gt;&gt; from unittest.mock import Mock
+&gt;&gt;&gt; email_service = Mock()
+&gt;&gt;&gt; email_service.send_email('alice@example.com', 'hello')
+&lt;Mock name='mock.send_email()' id='140552719212728'&gt;
+&gt;&gt;&gt; email_service.send_email.assert_called_once()
+&gt;&gt;&gt; email_service.send_spam.assert_called_once()
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "mock.py", line 795, in assert_called_once
+    raise AssertionError(msg)
+AssertionError: Expected 'send_spam' to have been called once. Called 0 times.</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">38 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>To mock or not to mock</h2>
+    <div class='slide-content'>
+      <div class="ulist">
+<div class="title">Достоинства</div>
+<ul>
+<li>
+<p>Весь код тестируем.</p>
+</li>
+<li>
+<p>Можно проверить тонкие аспекты поведения кода.</p>
+</li>
+<li>
+<p>Относительно просто писать тесты.</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Недостатки</div>
+<ul>
+<li>
+<p>Тестируется код, а не функциональность.</p>
+</li>
+<li>
+<p>Рефакторинги ломают тесты.</p>
+</li>
+<li>
+<p>API mock может отличатся от реального объекта.</p>
+</li>
+</ul>
+</div>
+    </div>
+    <footer>
+    <p class="small">39 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Property based testing</h2>
+    <div class='slide-content'>
+      <div class="admonitionblock note question">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<p class="">Как протестировать сортировку?</p>
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">def sort(xs):
+    ...</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">40 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Property based testing</h2>
+    <div class='slide-content'>
+      <div class="admonitionblock note question">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<p class="">Как протестировать сортировку?</p>
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">def sort(xs):
+    ...</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Давайте проверим, что результат отсортирован!</p>
+</li>
+</ul>
+</div>
+    </div>
+    <footer>
+    <p class="small">41 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Property based testing</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">def is_sorted(xs):
+    return all(
+        x &lt; y
+        for x, y in zip(*[iter(xs)]*2):  # спорная идиома
+    )
+
+def check_sorts(xs):
+    ys = xs[:]
+    sort(ys)
+    assert is_sorted(ys), f"failed to sort {xs}"</code></pre>
+</div>
+</div>
+<div class="admonitionblock note question">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<p class="">Как выбрать <code>xs</code>?</p>
+</td>
+</tr>
+</table>
+</div>
+    </div>
+    <footer>
+    <p class="small">42 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Случайный список</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">import random
+
+def random_list():
+    return random.choices(range(10**9), k=1000)</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">43 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Случайный список</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">import random
+
+def random_list():
+    return random.choices(range(10**9), k=1000)</code></pre>
+</div>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+в этом списке никогда не будет повторяющихся элементов.
+</td>
+</tr>
+</table>
+</div>
+    </div>
+    <footer>
+    <p class="small">44 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Более интересный список</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">import random
+
+# pattern: hard-coded constant -&gt; аргумент по умолчанию
+def random_list(max_element=10, max_len=100):
+    return random.choices(
+        range(max_element + 1),
+        k=random.randrange(max_len + 1),
+    )</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">45 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>hypothesis</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">from hypothesis import given, strategies as st
+
+@given(st.lists(st.integers()))  # композиция стратегий!
+def test_sorted(xs):
+    result = sorted(xs)
+    result[:2] = result[-2:]  # BUG!
+    assert all(xi &lt;= xj for xi, xj in zip(result, result[1:]))</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">hypothesis</dt>
+<dd>
+<p>Фреймворк для генерации интересный случайных данных и
+поиска <em>минимальных</em> контрпримеров</p>
+</dd>
+</dl>
+</div>
+    </div>
+    <footer>
+    <p class="small">46 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  no-title">
+    <h2>!</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>xs = [0, 0, 0, 1]
+
+    @given(st.lists(st.integers()))
+    def test_sorted(xs):
+        result = sorted(xs)
+        result[:2] = result[-2:]  # BUG!
+&gt;       assert all(xi &lt;= xj for xi, xj in zip(result, result[1:]))
+E       assert False
+E        +  where False = all(&lt;generator ... &gt;)
+
+rle.py:38: AssertionError
+---------------------- Hypothesis ----------------------
+Falsifying example: test_sorted(xs=[0, 0, 0, 1]) <i class="conum" data-value="1"></i><b>(1)</b>
+=============== 1 failed in 0.29 seconds ===============</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><strong>минимальный</strong> пример!</td>
+</tr>
+</table>
+</div>
+    </div>
+    <footer>
+    <p class="small">47 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Встроенные стратегии</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">st.just(x)          # ==&gt;  x, x, x
+st.none()           # ==&gt;  None, None, None
+st.one_of(a, b, c)  # ==&gt;  a, a, b, c, a
+st.booleans()       # ==&gt;  True, False, True
+st.integers()       # ==&gt;  1, -10, 2, 42
+st.floats()         # ==&gt;  math.pi, 42.42
+
+# str and bytes
+st.text()           # ==&gt;  "abra", "cadabra"
+st.binary()         # ==&gt;  b"\xff\xef", b"ascii"
+
+# Collections
+st.sampled_from(iterable)
+st.tuples(st.foo(), st.bar(), st.boo())
+st.lists(st.foo())
+st.sets(st.foo())
+st.dictionaries(st.foo(), st.bar())</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">48 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Тестируем rle</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">from itertools import chain, repeat, tee
+from hypothesis import given, strategies as st
+
+iterables = st.one_of(st.tuples(st.integers(0, 10)),
+                      st.lists(st.integers(0, 10)),
+                      st.text().map(iter))
+
+@given(iterables)
+def test_rle(it):
+    def encode_decode(it):
+        return chain.from_iterable(
+            repeat(item, count) for item, count in rle(it))
+
+    it, copy = tee(it)
+    expected = list(copy)
+    assert list(encode_decode(it)) == expected</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">49 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Победа</h2>
+    <div class='slide-content'>
+      <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-python" data-lang="python">rle.py::test_rle PASSED  [100%]
+==== 1 passed in 0.81 seconds ====</code></pre>
+</div>
+</div>
+    </div>
+    <footer>
+    <p class="small">50 / 51</p>
+    </footer>
+  </section>
+
+  <section class="slide  ">
+    <h2>Что читать в транспорте?</h2>
+    <div class='slide-content'>
+      <div class="ulist">
+<ul>
+<li>
+<p><a href="https://docs.pytest.org/en/latest/" class="bare">https://docs.pytest.org/en/latest/</a></p>
+</li>
+<li>
+<p><a href="https://hypothesis.readthedocs.io/en/latest/" class="bare">https://hypothesis.readthedocs.io/en/latest/</a></p>
+</li>
+</ul>
+</div>
+    </div>
+    <footer>
+    <p class="small">51 / 51</p>
+    </footer>
+  </section>
+  </body>
